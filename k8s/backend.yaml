@@ -1,0 +1,135 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backend-uploads
+  namespace: mou
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: rook-ceph-block
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: mou
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      initContainers:
+        - name: wait-mysql
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z mysql 3306; do
+                echo "waiting for mysql..."; sleep 2;
+              done
+      containers:
+        - name: backend
+          # เปลี่ยน tag ให้ตรง image ที่ push แล้ว
+          image: phudesign/mou-backend:ksu
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: TZ
+              value: Asia/Bangkok
+            - name: PORT
+              value: "3000"
+            - name: NODE_ENV
+              value: production
+            - name: DB_HOST
+              value: mysql
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mou-secrets
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: mou-secrets
+                  key: DB_PASS
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mou-secrets
+                  key: DB_NAME
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: mou-secrets
+                  key: JWT_SECRET
+            - name: JWT_EXPIRES_IN
+              value: 8h
+            - name: UPLOAD_DIR
+              value: ./uploads
+            - name: MAX_FILE_SIZE_MB
+              value: "50"
+            - name: CORS_ORIGIN
+              value: https://mou.ksu.ac.th
+            - name: LDAP_AUTH_API_URL
+              value: https://itservice.ksu.ac.th/api/ldap/ldap_auth_api.php
+            - name: LDAP_AUTH_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mou-secrets
+                  key: LDAP_AUTH_API_TOKEN
+            - name: LDAP_AUTH_ORIGIN
+              value: https://mts.ksu.ac.th
+            - name: LDAP_AUTH_VERIFY_SSL
+              value: "1"
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: backend-uploads
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: mou
+spec:
+  # ภายในคลัสเตอร์เท่านั้น — ผู้ใช้เข้าผ่าน Service web (Nginx reverse proxy)
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http

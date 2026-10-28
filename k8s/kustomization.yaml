@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mou
+
+# คลัสเตอร์ KSU: Gateway API (public-gw / nginx-gateway), StorageClass rook-ceph-block
+# image บน Docker Hub (phudesign/*)
+# ก่อน apply:
+#   1. push phudesign/mou-backend และ phudesign/mou-web แล้วแก้ tag ใน backend.yaml / web.yaml
+#   2. kubectl apply -k .
+#   3. ชี้ DNS mou.ksu.ac.th ไปที่ Gateway public-gw
+#   4. ตรวจ kubectl -n mou get pods,svc,httproute,pvc
+
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - mysql.yaml
+  - backend.yaml
+  - web.yaml
+  - route.yaml
+
+configMapGenerator:
+  - name: mysql-init
+    files:
+      - 01-schema.sql=init/01-schema.sql
+      - 02-seed.sql=init/02-seed.sql
+
+generatorOptions:
+  disableNameSuffixHash: true
