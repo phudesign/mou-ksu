@@ -1,0 +1,39 @@
+{
+  "name": "mou-signing-backend",
+  "version": "1.0.0",
+  "description": "Real-time MOU Signing System — Node.js + Express + Socket.io backend",
+  "main": "src/app.js",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "nodemon src/app.js",
+    "start": "node src/app.js",
+    "sample-pdf": "node scripts/create-sample-pdf.js",
+    "seed-demo": "node scripts/seed-demo-data.js"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "src",
+      ".env"
+    ],
+    "ext": "js,json"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.7",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.4.0",
+    "mysql2": "^3.24.6",
+    "pdf-lib": "^1.17.1",
+    "pngjs": "^7.0.0",
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

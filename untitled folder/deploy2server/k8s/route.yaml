@@ -1,0 +1,18 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: mou
+  namespace: __NAMESPACE__
+  annotations:
+    haproxy.router.openshift.io/timeout: 3600s
+    haproxy.router.openshift.io/proxy-body-size: 50m
+spec:
+  host: __INGRESS_HOST__
+  to:
+    kind: Service
+    name: web
+    weight: 100
+  port:
+    targetPort: http
+  wildcardPolicy: None
+  __TLS_BLOCK__

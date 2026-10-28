@@ -1,0 +1,35 @@
+รายการใน deploy2server (แพ็กเกจขึ้นเซิร์ฟเวอร์จริง — ครบในตัว)
+=============================================================
+
+คู่มือการใช้งาน.md         ← อ่านก่อน: เริ่มใช้งาน + อัปเดตโค้ด (ละเอียด)
+คู่มือฐานข้อมูล.md         ← คู่มือเฉพาะ MySQL + uploads
+README.md                  สรุปสั้น
+FILES.txt                  ไฟล์นี้
+
+config.env.example
+k8s/…                     manifests + init SQL
+build/backend/            โค้ด API + Dockerfile
+build/frontend/           Nginx + html/ (Flutter web ที่ build แล้ว)
+
+database/
+  schema.sql
+  seed.sql
+  data/mou_db_full.sql    dump ข้อมูลเต็ม (มีอยู่แล้วในแพ็กเกจ)
+  data/EXPORT_INFO.txt
+  uploads/                ไฟล์ PDF / ลายเซ็น / signed
+  README.md               วิธีอัปเดตข้อมูล
+
+scripts/
+  sync-from-repo.sh
+  export-data.sh          รีเฟรช dump จากเครื่องพัฒนา
+  import-data.sh          นำ dump+uploads เข้าคลัสเตอร์ (ทับข้อมูล)
+  import-schema-only.sh   แค่ schema/seed
+  build-push.sh / deploy.sh / status.sh / backup-db.sh / render.sh
+
+คัดลอกทั้งโฟลเดอร์ deploy2server ไปเครื่อง deploy ได้
+
+อย่า commit / อย่าแชร์:
+  config.env
+  k8s/secret.yaml
+  .generated/
+  backups/

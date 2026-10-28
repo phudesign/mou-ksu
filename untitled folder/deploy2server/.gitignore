@@ -1,0 +1,5 @@
+config.env
+k8s/secret.yaml
+.generated/
+backups/
+.DS_Store
